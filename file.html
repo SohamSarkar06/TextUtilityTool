@@ -5,21 +5,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Text Tools App</title>
-  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f5f5f5;
-      color: #333;
+      background-color: #0d1117;
+      /* Dark page background */
+      color: #f0f6fc;
     }
 
     h1 {
       text-align: center;
       padding-top: 20px;
       font-size: 28px;
-      color: #222;
+      color: #f0f6fc;
     }
 
     .main-container {
@@ -32,17 +33,18 @@
 
     .toolbox {
       flex: 1 1 420px;
-      background: #fffaf2;
+      background: #161b22;
+      /* Card background */
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
       min-height: 720px;
     }
 
     .section-title {
       font-size: 20px;
       margin-bottom: 15px;
-      color: #4A4A4A;
+      color: #58a6ff;
       text-align: center;
     }
 
@@ -50,6 +52,7 @@
       font-weight: bold;
       display: block;
       margin: 10px 0 5px;
+      color: #c9d1d9;
     }
 
     input[type="file"],
@@ -59,37 +62,40 @@
       margin-bottom: 10px;
       padding: 10px;
       font-size: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #30363d;
       border-radius: 8px;
       box-sizing: border-box;
-      transition: all 0.3s ease;
+      background-color: #0d1117;
+      color: #f0f6fc;
     }
 
     button {
-      background-color: #4CAF50;
+      background-color: #238636;
       color: white;
-      cursor: pointer;
       border: none;
+      cursor: pointer;
     }
 
     button:hover {
-      background-color: #45a049;
+      background-color: #2ea043;
     }
 
     .download-btn {
-      background-color: #008CBA;
+      background-color: #388bfd;
     }
 
     .download-btn:hover {
-      background-color: #0077a3;
+      background-color: #1f6feb;
     }
 
     #fileContent,
     #outputText {
-      background: #eef1f6;
+      background: #0d1117;
+      color: #f0f6fc;
       white-space: pre-wrap;
       height: 120px;
       resize: vertical;
+      border: 1px solid #30363d;
     }
 
     #qrcode,
@@ -101,7 +107,7 @@
     a#downloadLink {
       display: inline-block;
       margin-top: 10px;
-      color: #0066cc;
+      color: #58a6ff;
       text-decoration: none;
     }
 
@@ -110,12 +116,16 @@
     }
 
     .instructions {
-      background-color: #fffae6;
+      background-color: #21262d;
       padding: 10px;
       margin-bottom: 15px;
       border-radius: 8px;
       font-size: 14px;
-      color: #333;
+      color: #c9d1d9;
+    }
+
+    hr {
+      border: 1px solid #30363d;
     }
 
     @media (max-width: 900px) {
@@ -128,62 +138,73 @@
 </head>
 
 <body>
-  <h1>Text File Utility Tool</h1>
   <div class="main-container">
+    <h1>Text File Utility Tool</h1>
 
-    <!-- QR and Encryption Tool -->
-    <div class="toolbox">
-      <div class="section-title">QR Code & Image Generator</div>
-      <div class="instructions">
-        Upload a text file and convert it to a QR code or an encoded image.
+
+    <div class="main-container">
+
+      <!-- QR and Encryption Tool -->
+
+      <div class="toolbox">
+        <div class="section-title">QR Code & Image Generator</div>
+        <div class="instructions">
+          Upload a text file and convert it to a QR code or an encoded image.
+        </div>
+        <label for="fileInput">Choose Text File:</label>
+        <input type="file" id="fileInput" accept=".txt" />
+        <div class="filename" id="fileNameDisplay"></div>
+        <label>File Content:</label>
+        <div id="fileContent"></div>
+
+        <button id="generateBtn" disabled>Generate QR Code</button>
+        <div id="qrcode"></div>
+        <button id="downloadBtn" class="download-btn" disabled>Download QR Code</button>
+
+        <hr style="margin: 20px 0;" />
+
+        <button onclick="encryptToImage()" id="encryptBtn" disabled>Encrypt & Create Image</button>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <a id="downloadLink" download="encrypted.png" style="display:none;">Download Encrypted Image</a>
       </div>
-      <label for="fileInput">Choose Text File:</label>
-      <input type="file" id="fileInput" accept=".txt" />
-      <label>File Content:</label>
-      <div id="fileContent"></div>
 
-      <button id="generateBtn">Generate QR Code</button>
-      <div id="qrcode"></div>
-      <button id="downloadBtn" class="download-btn" disabled>Download QR Code</button>
-
-      <hr style="margin: 20px 0;" />
-
-      <button onclick="encryptToImage()">Encrypt & Create Image</button>
-      <canvas id="canvas" style="display:none;"></canvas>
-      <a id="downloadLink" download="encrypted.png">Download Encrypted Image</a>
+      <!-- Text Extractor Tool -->
+      <div class="toolbox">
+        <div class="section-title">Text Extractor from Image</div>
+        <div class="instructions">Upload a PNG file with text to extract it.</div>
+        <label for="imageInput">Choose PNG Image:</label>
+        <input type="file" id="imageInput" accept="image/png" />
+        <div class="loading" id="ocrLoading" style="display:none;">Extracting text...</div>
+        <button onclick="extractText()">Extract Text</button>
+        <label>Extracted Text:</label>
+        <textarea id="outputText" placeholder="Extracted text will appear here..."></textarea>
+        <button onclick="downloadText()">Download as .txt</button>
+      </div>
     </div>
-
-    <!-- Text Extractor Tool -->
-    <div class="toolbox">
-      <div class="section-title">Text Extractor from Image</div>
-      <div class="instructions">Upload a PNG file with text to extract it.</div>
-      <label for="imageInput">Choose PNG Image:</label>
-      <input type="file" id="imageInput" accept="image/png" />
-      <button onclick="extractText()">Extract Text</button>
-      <label>Extracted Text:</label>
-      <textarea id="outputText" placeholder="Extracted text will appear here..."></textarea>
-      <button onclick="downloadText()">Download as .txt</button>
-    </div>
-
   </div>
 
   <script>
     const fileInput = document.getElementById('fileInput');
     const fileContent = document.getElementById('fileContent');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
     const generateBtn = document.getElementById('generateBtn');
+    const encryptBtn = document.getElementById('encryptBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const qrcodeDiv = document.getElementById('qrcode');
-    let currentQRCode = null;
     let currentText = '';
 
     fileInput.addEventListener('change', function (e) {
       const file = e.target.files[0];
       if (!file) return;
 
+      fileNameDisplay.textContent = "File: " + file.name;
+
       const reader = new FileReader();
       reader.onload = function (e) {
         currentText = e.target.result;
         fileContent.textContent = currentText;
+        generateBtn.disabled = false;
+        encryptBtn.disabled = false;
       };
       reader.readAsText(file);
       qrcodeDiv.innerHTML = '';
@@ -197,7 +218,7 @@
       }
 
       qrcodeDiv.innerHTML = '';
-      currentQRCode = new QRCode(qrcodeDiv, {
+      new QRCode(qrcodeDiv, {
         text: currentText,
         width: 256,
         height: 256,
@@ -228,65 +249,60 @@
       const ctx = canvas.getContext('2d');
       const link = document.getElementById('downloadLink');
 
-      if (fileInput.files.length === 0) {
-        alert("Please select a text file.");
-        return;
+      const text = currentText;
+      const encoded = btoa(text);
+
+      const width = Math.ceil(Math.sqrt(encoded.length)) + 10;
+      const height = width;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.fillStyle = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = "#000";
+      ctx.font = "10px monospace";
+
+      let x = 5, y = 15;
+      for (let i = 0; i < encoded.length; i++) {
+        ctx.fillText(encoded[i], x, y);
+        x += 6;
+        if (x > width - 10) {
+          x = 5;
+          y += 12;
+        }
       }
 
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const text = event.target.result;
-        const encoded = btoa(text);
-
-        const width = Math.ceil(Math.sqrt(encoded.length)) + 10;
-        const height = width;
-
-        canvas.width = width;
-        canvas.height = height;
-
-        ctx.fillStyle = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
-        ctx.fillRect(0, 0, width, height);
-
-        ctx.fillStyle = "#000";
-        ctx.font = "10px monospace";
-
-        let x = 5, y = 15;
-        for (let i = 0; i < encoded.length; i++) {
-          ctx.fillText(encoded[i], x, y);
-          x += 6;
-          if (x > width - 10) {
-            x = 5;
-            y += 12;
-          }
-        }
-
-        canvas.style.display = 'block';
-        const dataURL = canvas.toDataURL("image/png");
-        link.href = dataURL;
-        link.style.display = 'inline-block';
-      };
-
-      reader.readAsText(fileInput.files[0]);
+      canvas.style.display = 'block';
+      const dataURL = canvas.toDataURL("image/png");
+      link.href = dataURL;
+      link.style.display = 'inline-block';
     }
 
     function extractText() {
       const imageInput = document.getElementById('imageInput');
       const output = document.getElementById('outputText');
+      const loading = document.getElementById('ocrLoading');
 
       if (imageInput.files.length === 0) {
         alert("Please upload a PNG file first.");
         return;
       }
 
-      const imageFile = imageInput.files[0];
+      loading.style.display = 'block';
+      output.value = '';
 
+      const imageFile = imageInput.files[0];
       Tesseract.recognize(imageFile, 'eng', {
         logger: m => console.log(m)
       }).then(({data: {text}}) => {
         output.value = text;
+        loading.style.display = 'none';
       }).catch(error => {
         alert("Failed to extract text. Try again.");
         console.error(error);
+        loading.style.display = 'none';
       });
     }
 
